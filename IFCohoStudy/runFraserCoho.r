@@ -48,6 +48,7 @@ sourceAll <- function(){
   source("retroFunctions.r")
   source("helperFunctions.r")
   source("LRdiagnostics.r")
+  source(paste(cohoDir,"compareRickerModelTypes_SRonly.r",sep="/"))
 }
 
 sourceAll()
@@ -136,6 +137,12 @@ AggEscp <- CoEscpDat %>% group_by(yr) %>% summarise(Agg_Escp = sum(Escp)) %>%
 # ======================================================================================================================
 # (2) Call functions to plot data:
 # ===================================================================================================================
+
+# Ensure 'Figures' output directory exists
+figureDir<-paste(cohoDir,"/Figures", sep="")
+if (!file.exists(figureDir)){
+  dir.create(figureDir)
+}
 
  plot_CU_Escp_Over_Time(CoEscpDat, cohoDir, plotName="coho-CU-EscpSeries", samePlot = F, withSgen=TRUE, addGenMean=T,
                         SgenFileName="ModelFits/AllEsts_Indiv_Ricker_Surv")
