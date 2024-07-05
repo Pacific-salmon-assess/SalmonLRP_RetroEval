@@ -48,10 +48,12 @@ sourceAll <- function(){
   source("retroFunctions.r")
   source("helperFunctions.r")
   source("LRdiagnostics.r")
-  source(paste(cohoDir,"compareRickerModelTypes_SRonly.r",sep="/"))
 }
 
 sourceAll()
+
+# Fit SR models for each CU and save results in DataOut folder
+source(paste(cohoDir,"compareRickerModelTypes_SRonly.r",sep="/"))
 
 # Load TMB models
 
