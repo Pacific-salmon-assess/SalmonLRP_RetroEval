@@ -128,10 +128,10 @@ run_ScenarioProj <- function(SRDat, BMmodel, scenarioName, useGenMean, genYrs,
           #mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc.csv", sep="/"))
           
           if(is.null(evenPars)) {
-            # mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc.csv",
+            mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc.csv",
             # mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_wEnh_2024.csv",
             # mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_CoreInd.csv",
-            mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_AllExMH.csv",
+            # mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_AllExMH.csv",
                                                                 sep="/"))
           }        
           if(!is.null(evenPars)){# This mcmc SR set assume even pars across CUs
@@ -207,10 +207,10 @@ run_ScenarioProj <- function(SRDat, BMmodel, scenarioName, useGenMean, genYrs,
 
 
   # Read-in CU pars file and re-write with updated scenario pars =====================
-  # CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars.csv",sep="/"))
+  CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars.csv",sep="/"))
   # CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars_wEnh.csv",sep="/"))
   # CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars_CoreInd.csv",sep="/"))
-  CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars_AllExMH.csv",sep="/"))
+  # CUpars<-read.csv(paste(outDir, "SamSimInputs/CUPars_AllExMH.csv",sep="/"))
   
   # -- specify ER scenario
   CUpars$cvER <- rep(cvER,length(unique(CUpars$stk)))
@@ -544,6 +544,10 @@ run_ScenarioProjParallel <- function(SRDat, BMmodel, scenarioName, useGenMean,
         }
         if(alphaScalar==1.5 & SREPScalar==1){
           mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_alphaScalar1.5_SREPScalar1.csv",
+                                    sep="/"))
+        }
+        if(alphaScalar==1.25 & SREPScalar==1){
+          mcmcOut <- read.csv(paste(outDir,"SamSimInputs/Ricker_mcmc_alphaScalar1.25_SREPScalar1.csv",
                                     sep="/"))
         }
         if(alphaScalar==0.5 & SREPScalar==1){

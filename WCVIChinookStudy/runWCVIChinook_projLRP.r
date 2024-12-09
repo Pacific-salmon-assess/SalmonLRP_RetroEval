@@ -27,7 +27,8 @@
 #     (14) Plot age proportions in recruitment
 #     (15) Plot SMU time-series
 #     (16) Explore samSim outputs
-#     (17) Make comparison plots among scenarios (NOT CURRENTLY WORKING)
+#     (17) Plot points for LRPs at various ERs
+#     (18) Make comparison plots among scenarios (NOT CURRENTLY WORKING)
 
 # ===============================================================================
 
@@ -81,9 +82,9 @@ sourceAll()
 #(1)  Read-in WCVI Chinook data and plot:
 # =====================================================================
 setwd(wcviCKDir)
-remove.EnhStocks <- FALSE#TRUE#FALSE#TRUE
+remove.EnhStocks <- TRUE#FALSE#TRUE
 CoreInd <- FALSE
-AllExMH <- TRUE#FALSE
+AllExMH <- FALSE#TRUE#FALSE
 
 # Data to estimate correlation matrix
 if(!CoreInd & !AllExMH){
@@ -709,6 +710,18 @@ projSpawners <-run_ScenarioProj(SRDat = NULL, BMmodel = NULL,
                                 annualcvERCU=FALSE, biasCorrectProj=TRUE, ER=0.3,
                                 alphaScalar=0.75, SREPScalar=1)
 
+# scenarioName <- "alphaScalar1.5n1000"# Worked with set.seed(10)
+
+scenarioName <- "alphaScalar1.5n10000"
+
+projSpawners <-run_ScenarioProj(SRDat = NULL, BMmodel = NULL,
+                                scenarioName=scenarioName,
+                                useGenMean = F, genYrs = genYrs,
+                                TMB_Inputs=NULL, outDir=wcviCKDir, runMCMC=T,
+                                nMCMC=NULL, nProj=10000, cvER = 0.085, cvERSMU=0.17,
+                                recCorScalar=1, corMat=corMat, agePpnConst=FALSE,
+                                annualcvERCU=FALSE, biasCorrectProj=TRUE, ER=0.3,
+                                alphaScalar=1.5, SREPScalar=1)
 
 scenarioName <- "alphaScalar1.5n50000"
 
@@ -977,14 +990,14 @@ for (i in 1:length(OMsToInclude)) {
 # For now, I have copied the SREP files to the SalmonLRP_RetroEval repository
 # If the watershed-area-model is updated, these files will need to be updated
 
-createMCMCout <- FALSE
+createMCMCout <- FALSE#TRUE
 setwd(wcviCKDir)
-alphaScalar <- 1
+alphaScalar <- 1.5
 SREPScalar <- 1
 evenPars <- FALSE#TRUE
-remove.EnhStocks <- FALSE#TRUE
+remove.EnhStocks <- TRUE#FALSE#TRUE
 CoreInd <- FALSE #Core 6 indicators only
-AllExMH <- TRUE # all except major hatchery failities
+AllExMH <- FALSE#TRUE # all except major hatchery failities
 
 # Only need to run once to create mcmcOut.csv file with a given assumed
 # distribution of alpha and SREP
@@ -1016,7 +1029,7 @@ if(!remove.EnhStocks & !CoreInd & !AllExMH){
 
 
 if(createMCMCout){
-  set.seed(1)
+  set.seed(1)#set.seed(10)
   nTrials <- 50000
   # Set up matrix of random numbers to use for generating alphas, so that
   # the same random numbers are used for Ricka estimates with bias correction
@@ -1193,7 +1206,7 @@ if(createMCMCout){
 
   }
 
-  if(alphaScalar!=1 | SREPScalar!=1) write.csv(mcmcOut, paste(wcviCKDir, "/SamSimInputs/Ricker_mcmc_alphaScalar",alphaScalar ,"_SREPScalar",SREPScalar,".csv", sep=""),
+  if(alphaScalar!=1 | SREPScalar!=1) write.csv(mcmcOut, paste(wcviCKDir, "/SamSimInputs/Ricker_mcmc_alphaScalar",alphaScalar ,"_SREPScalar",SREPScalar,"setseed10.csv", sep=""),
             row.names=F)
 
   #plot of alpha and SREP density
@@ -1798,7 +1811,7 @@ for (p in 1:length(probThresh)){
 # Specify threshold to use when calculating LRP
 # # Note: may want to loop over probThresholds as well; still needs to be added
 propCUThresh <- 1.0 # required proportion of CUs above lower benchmark
-probThresh<-c(0.50,0.66, 0.75, 0.95)#,0.9, 0.99) # probability theshhold; the LRP is set as the aggregate abundance that has this
+probThresh<-c(0.33,0.50,0.66)#, 0.75, 0.95)#,0.9, 0.99) # probability theshhold; the LRP is set as the aggregate abundance that has this
 # probability that the propCUThreshold is met
 
 # Specify scenarios to calculate LRPs and make plots for.
@@ -1807,18 +1820,18 @@ OMsToInclude<-c(
   # "baseER")
   # "baseER_wEnh")
   # "baseER_CoreInd")
-   "baseER_AllExMH")
+   # "baseER_AllExMH")
   #"ER0",
-  # "ER0.05",
-  # "ER0.10",
-  # "ER0.15",
-  # "ER0.2",
-  # "ER0.25",
+  "ER0.05",
+  "ER0.10",
+  "ER0.15",
+  "ER0.2",
+  "ER0.25",
   # # "ER0.30",
-  # "baseER",
-  # "ER0.35",
-  # "ER0.4",
-  # "ER0.45")
+  "baseER",
+  "ER0.35",
+  "ER0.4",
+  "ER0.45")
   # "ER0.05even_hCor",
   # "ER0.10even_hCor",
   # "ER0.15even_hCor",
@@ -1871,10 +1884,11 @@ OMsToInclude<-c(
 # "cvER0.17")
 
 
+plot.CUs <- FALSE#TRUE
 
 
 if(length(OMsToInclude)==1) OMsToIncludeName <- OMsToInclude[1]
-if(length(OMsToInclude)==9) OMsToIncludeName <- "ERsEven-hCor"#ERs"#"ERsEven-hCor"#"ERs"
+if(length(OMsToInclude)==9) OMsToIncludeName <- "ERs"#ERs"#"ERsEven-hCor"#"ERs"
 if(length(OMsToInclude)==3) OMsToIncludeName <- "Alphas"#"cvER"#"Alphas"#"cvER"#"
 
 LRP <- NA
@@ -1888,16 +1902,17 @@ for (OM in 1:length(OMsToInclude)){
     filename<-paste("projLRPDat_",OMsToInclude[OM],".csv",sep="")
     filenameCU<-paste("projCUBenchDat_",OMsToInclude[OM],".csv",sep="")
     projLRPDat<-read.csv(here::here(wcviCKDir, "SamSimOutputs", "simData",filename))
-    projCUBenchDat<-read.csv(here::here(wcviCKDir, "SamSimOutputs", "simData",filenameCU))
+    if(plot.CUs) projCUBenchDat<-read.csv(here::here(wcviCKDir, "SamSimOutputs", "simData",filenameCU))
     # CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars.csv",sep="/"))
     # CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars_wEnh.csv",sep="/"))
     # CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars_CoreInd.csv",sep="/"))
 
     #NEED TO CHANGE THIS WHEN I CHANGE OM TO INCLUDE
-    CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars_AllExMH.csv",sep="/"))
+    CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars.csv",sep="/"))
+    #CUpars <- read.csv(paste(wcviCKDir, "SamSimInputs/CUPars_AllExMH.csv",sep="/"))
     #######################################################
 
-    projCUBenchDat<-projCUBenchDat %>% filter(year > CUpars$ageMaxRec[1]*10)#)max(SRDat$yr_num)+4)
+    if(plot.CUs) projCUBenchDat<-projCUBenchDat %>% filter(year > CUpars$ageMaxRec[1]*10)#)max(SRDat$yr_num)+4)
     projLRPDat<-projLRPDat %>% filter(year > CUpars$ageMaxRec[1]*10)#)max(SRDat$yr_num)+4)
 
     # Create bins for projected spawner abundances
@@ -1908,101 +1923,104 @@ for (OM in 1:length(OMsToInclude)){
 
     # Set bin labels as the mid-point
     projLRPDat$bins<-cut(projLRPDat$sAg,breaks=breaks,labels=as.character(rollmean(breaks,k=2)))
-    projCUBenchDat$bins<-cut(projCUBenchDat$sAg,breaks=breaks,labels=as.character(rollmean(breaks,k=2)))
+    if(plot.CUs) projCUBenchDat$bins<-cut(projCUBenchDat$sAg,breaks=breaks,labels=as.character(rollmean(breaks,k=2)))
 
     # Summarize nSims in each bin
     tmp<-projLRPDat %>% group_by(bins) %>% summarise(nSims=(length(ppnCUsLowerBM)))
-    tmpCU<-projCUBenchDat %>% group_by(bins) %>% summarise(nSims=(length(X1)))
+    if(plot.CUs) tmpCU<-projCUBenchDat %>% group_by(bins) %>% summarise(nSims=(length(X1)))
 
     # Filter out bins with < 100 nSims
     tmp2<-projLRPDat %>% group_by(bins) %>% summarise(nSimsProp1=(length(ppnCUsLowerBM[ppnCUsLowerBM == propCUThresh]))) %>%
       add_column(nSims=tmp$nSims) %>% filter(nSims>=10)
-    # For CU level probability, note filter for low nSims is below
-    if(length(CUpars$stk)==2){
-      tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
-      tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
-      tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
-        add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
-    }
-    if(length(CUpars$stk)==5){
-      tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
-      tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
-      tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
-      tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
-      tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
-      tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
-        left_join(tmp2CU_x3, by="bins") %>%
-        left_join(tmp2CU_x4, by="bins") %>%
-        left_join(tmp2CU_x5, by="bins") %>%
-        add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
-    }
-    if(length(CUpars$stk)==6){
-      tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
-      tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
-      tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
-      tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
-      tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
-      tmp2CU_x6<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX6=(sum(X6)))
-      tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
-        left_join(tmp2CU_x3, by="bins") %>%
-        left_join(tmp2CU_x4, by="bins") %>%
-        left_join(tmp2CU_x5, by="bins") %>%
-        left_join(tmp2CU_x6, by="bins") %>%
-        add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
-    }
-    if(length(CUpars$stk)==7){
-      tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
-      tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
-      tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
-      tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
-      tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
-      tmp2CU_x6<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX6=(sum(X6)))
-      tmp2CU_x7<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX7=(sum(X7)))
-      tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
-        left_join(tmp2CU_x3, by="bins") %>%
-        left_join(tmp2CU_x4, by="bins") %>%
-        left_join(tmp2CU_x5, by="bins") %>%
-        left_join(tmp2CU_x6, by="bins") %>%
-        left_join(tmp2CU_x7, by="bins") %>%
-        add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
+    # # For CU level probability, note filter for low nSims is below
+    if(plot.CUs){
+      if(length(CUpars$stk)==2){
+        tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
+        tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
+        tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
+          add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
+      }
+      if(length(CUpars$stk)==5){
+        tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
+        tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
+        tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
+        tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
+        tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
+        tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
+          left_join(tmp2CU_x3, by="bins") %>%
+          left_join(tmp2CU_x4, by="bins") %>%
+          left_join(tmp2CU_x5, by="bins") %>%
+          add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
+      }
+      if(length(CUpars$stk)==6){
+        tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
+        tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
+        tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
+        tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
+        tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
+        tmp2CU_x6<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX6=(sum(X6)))
+        tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
+          left_join(tmp2CU_x3, by="bins") %>%
+          left_join(tmp2CU_x4, by="bins") %>%
+          left_join(tmp2CU_x5, by="bins") %>%
+          left_join(tmp2CU_x6, by="bins") %>%
+          add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
+      }
+      if(length(CUpars$stk)==7){
+        tmp2CU_x1<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX1=(sum(X1)))
+        tmp2CU_x2<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX2=(sum(X2)))
+        tmp2CU_x3<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX3=(sum(X3)))
+        tmp2CU_x4<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX4=(sum(X4)))
+        tmp2CU_x5<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX5=(sum(X5)))
+        tmp2CU_x6<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX6=(sum(X6)))
+        tmp2CU_x7<-projCUBenchDat %>% group_by(bins) %>% summarise(nSimsPropX7=(sum(X7)))
+        tmp2CU <- tmp2CU_x1 %>% left_join(tmp2CU_x2, by="bins") %>%
+          left_join(tmp2CU_x3, by="bins") %>%
+          left_join(tmp2CU_x4, by="bins") %>%
+          left_join(tmp2CU_x5, by="bins") %>%
+          left_join(tmp2CU_x6, by="bins") %>%
+          left_join(tmp2CU_x7, by="bins") %>%
+          add_column(nSims=tmpCU$nSims) %>% filter(nSims>=50)
+      }
     }
 
 
     # For each bin, calculate probability that required proportion of CUs above benchmark
     projLRPDat<-tmp2 %>% add_column(prob=tmp2$nSimsProp1/tmp2$nSims)
-    if(length(CUpars$stk)==2){
-      projCUBenchDat<-tmp2CU %>%
-        add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
-        add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims)
+    if(plot.CUs){
+      if(length(CUpars$stk)==2){
+        projCUBenchDat<-tmp2CU %>%
+          add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
+          add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims)
+      }
+      if(length(CUpars$stk)==5){
+        projCUBenchDat<-tmp2CU %>%
+          add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
+          add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
+          add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
+          add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
+          add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims)
+      }
+      if(length(CUpars$stk)==6){
+        projCUBenchDat<-tmp2CU %>%
+          add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
+          add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
+          add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
+          add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
+          add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims) %>%
+          add_column(prob6=tmp2CU$nSimsPropX6/tmp2CU$nSims)
+      }
+      if(length(CUpars$stk)==7){
+        projCUBenchDat<-tmp2CU %>%
+          add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
+          add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
+          add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
+          add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
+          add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims) %>%
+          add_column(prob6=tmp2CU$nSimsPropX6/tmp2CU$nSims) %>%
+          add_column(prob7=tmp2CU$nSimsPropX7/tmp2CU$nSims)
+      }
     }
-    if(length(CUpars$stk)==5){
-      projCUBenchDat<-tmp2CU %>%
-        add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
-        add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
-        add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
-        add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
-        add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims)
-    }
-    if(length(CUpars$stk)==6){
-      projCUBenchDat<-tmp2CU %>%
-        add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
-        add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
-        add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
-        add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
-        add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims) %>%
-        add_column(prob6=tmp2CU$nSimsPropX6/tmp2CU$nSims)
-    }
-    if(length(CUpars$stk)==7){
-      projCUBenchDat<-tmp2CU %>%
-        add_column(prob1=tmp2CU$nSimsPropX1/tmp2CU$nSims) %>%
-        add_column(prob2=tmp2CU$nSimsPropX2/tmp2CU$nSims) %>%
-        add_column(prob3=tmp2CU$nSimsPropX3/tmp2CU$nSims) %>%
-        add_column(prob4=tmp2CU$nSimsPropX4/tmp2CU$nSims) %>%
-        add_column(prob5=tmp2CU$nSimsPropX5/tmp2CU$nSims) %>%
-        add_column(prob6=tmp2CU$nSimsPropX6/tmp2CU$nSims) %>%
-        add_column(prob7=tmp2CU$nSimsPropX7/tmp2CU$nSims)
-    }
-
 
     # For each bin, calculate the difference between the threshold probability and the calculated probability
     tmp3 <- projLRPDat %>% filter(nSims>100)# Remove bins where there are very few nSims among LRP options
@@ -2063,8 +2081,7 @@ for (OM in 1:length(OMsToInclude)){
            # xlab="Aggregate Abundance", ylab="Pr (All inlets > Lower Benchmark)")
            # xlab="Abondance agrégée", ylab="Prob(tous les inlets) > PRI")
           yaxt <- "s"
-      plot.CUs <- FALSE#TRUE
-      if(plot.CUs){
+       if(plot.CUs){
         points(as.numeric(as.character(projCUBenchDat$bins)),
                projCUBenchDat$prob1, pch=19,
                # col = palette(hcl.colors(7, "viridis"))[1],
@@ -2265,7 +2282,7 @@ for (OM in 1:length(OMsToInclude)){
   write.csv(projLRPDat.plot, paste(projOutDir2, "/ProjectedLRP_data", OMsToInclude[OM],
                                    "_Allp.csv", sep=""), row.names=F)
   # Save CU benchmark projection summaries used for calculating and plotting prob of CUs>LBM
-  write.csv(projCUBenchDat, paste(projOutDir2, "/projCUBench_data", OMsToInclude[OM],
+  if(plot.CUs) write.csv(projCUBenchDat, paste(projOutDir2, "/projCUBench_data", OMsToInclude[OM],
                                    "_Allp.csv", sep=""), row.names=F)
 
 }# End of for OM in 1:length(OMsToInclude)
@@ -2651,9 +2668,37 @@ d["varAlpha"][[1]] # matrix(..., nrow = nTrials, ncol = nCU), cv over years
 # medAlpha[n, ] <- apply(na.omit(alphaMat[yrsSeq, ]), 2, median)
 # varAlpha[n, ] <- apply(na.omit(alphaMat[yrsSeq, ]), 2, cv)
 
-
 # ===================================================================
-# (16) Make Comparison Plots Among Scenarios (NOT CURRENTLY WORKING)
+# (18) Dot plot of LRPs along gracient in ERs
+# ==================================================================
+
+OMsToInclude<-c(
+  "ER0.05",
+  "ER0.10",
+  "ER0.15",
+  "ER0.2",
+  "ER0.25",
+  "baseER",
+  "ER0.35",
+  "ER0.4")
+
+ERLRP <- data.frame(per33=NA, per50=NA, per66=NA, ER=seq(0.05,0.4,0.05))
+for (i in 1:length(OMsToInclude)){
+  ERLRP[i,1:3] <- read.csv(paste(projOutDir2, "/ProjectedLRPs",
+                                 OMsToInclude[i], "_ALLp.csv", sep=""))$LRP
+}
+
+ERLRPplot <- ERLRP %>% ggplot(aes(x=ER, y=per50)) +
+  geom_point() +
+  geom_errorbar(aes(ymin=per33, ymax=per66), width=0)+
+  theme_classic() +
+  labs(title=element_blank(), x="Exploitation rate (%)",
+       y = "LRP (at 50% probability level)")
+
+ggsave(paste(wcviCKDir,"/Figures/ProjectedLRPs/ERLRPplot.png",sep=""),
+       plot = ERLRPplot, width = 4, height = 3, units = "in")
+# ===================================================================
+# (19) Make Comparison Plots Among Scenarios (NOT CURRENTLY WORKING)
 # ==================================================================
 
 # Note: The below code needs to be updated for new projected LRP method (Apr 26, 2021)
