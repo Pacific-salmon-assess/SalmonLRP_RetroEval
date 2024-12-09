@@ -52,6 +52,9 @@ sourceAll <- function(){
 
 sourceAll()
 
+# Fit SR models for each CU and save results in DataOut folder
+source(paste(cohoDir,"compareRickerModelTypes_SRonly.r",sep="/"))
+
 # Load TMB models
 
 compile("TMB_Files/SR_HierRicker_Surv_LowAggPrior.cpp")
@@ -136,6 +139,12 @@ AggEscp <- CoEscpDat %>% group_by(yr) %>% summarise(Agg_Escp = sum(Escp)) %>%
 # ======================================================================================================================
 # (2) Call functions to plot data:
 # ===================================================================================================================
+
+# Ensure 'Figures' output directory exists
+figureDir<-paste(cohoDir,"/Figures", sep="")
+if (!file.exists(figureDir)){
+  dir.create(figureDir)
+}
 
  plot_CU_Escp_Over_Time(CoEscpDat, cohoDir, plotName="coho-CU-EscpSeries", samePlot = F, withSgen=TRUE, addGenMean=T,
                         SgenFileName="ModelFits/AllEsts_Indiv_Ricker_Surv")

@@ -16,9 +16,14 @@ rootDir<-getwd()
 codeDir<-paste(rootDir,"/Code",sep="")
 cohoDir<-paste(rootDir,"/IFCohoStudy",sep="")
 
+# Create directory to save model fitting estimates
+outDir <- paste(cohoDir, "/DataOut", sep="")
+if (file.exists(outDir) == FALSE){
+  dir.create(outDir)
+}
 
 # Create directory to save model fitting estimates
-outDir <- paste(cohoDir, "/DataOut/ModelFits", sep="")
+outDir <- paste(outDir, "/ModelFits", sep="")
 if (file.exists(outDir) == FALSE){
   dir.create(outDir)
 }
